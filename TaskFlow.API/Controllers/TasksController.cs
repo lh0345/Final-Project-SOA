@@ -6,6 +6,10 @@ using TaskFlow.Application.Interfaces;
 
 namespace TaskFlow.API.Controllers;
 
+/// <summary>
+/// Manages task CRUD operations for the authenticated user.
+/// All endpoints require a valid JWT token.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
@@ -20,6 +24,14 @@ public class TasksController : ControllerBase
 
     private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
+    /// <summary>
+    /// Creates a new task for the authenticated user.
+    /// </summary>
+    /// <param name="dto">The task creation data.</param>
+    /// <returns>The newly created task.</returns>
+    /// <response code="201">Returns the created task.</response>
+    /// <response code="400">If the request data is invalid.</response>
+    /// <response code="401">If the user is not authenticated.</response>
     [HttpPost]
     public async Task<ActionResult<TaskDto>> Create([FromBody] TaskCreateDto dto)
     {
@@ -27,6 +39,12 @@ public class TasksController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = task.Id }, task);
     }
 
+    /// <summary>
+    /// Retrieves all tasks belonging to the authenticated user.
+    /// </summary>
+    /// <returns>A list of tasks for the current user.</returns>
+    /// <response code="200">Returns the list of tasks.</response>
+    /// <response code="401">If the user is not authenticated.</response>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<TaskDto>>> GetAll()
     {
@@ -34,6 +52,14 @@ public class TasksController : ControllerBase
         return Ok(tasks);
     }
 
+    /// <summary>
+    /// Retrieves a specific task by its ID for the authenticated user.
+    /// </summary>
+    /// <param name="id">The unique identifier of the task.</param>
+    /// <returns>The requested task.</returns>
+    /// <response code="200">Returns the requested task.</response>
+    /// <response code="401">If the user is not authenticated.</response>
+    /// <response code="404">If the task is not found.</response>
     [HttpGet("{id}")]
     public async Task<ActionResult<TaskDto>> GetById(Guid id)
     {
@@ -43,6 +69,16 @@ public class TasksController : ControllerBase
         return Ok(task);
     }
 
+    /// <summary>
+    /// Updates an existing task for the authenticated user.
+    /// </summary>
+    /// <param name="id">The unique identifier of the task to update.</param>
+    /// <param name="dto">The updated task data.</param>
+    /// <returns>The updated task.</returns>
+    /// <response code="200">Returns the updated task.</response>
+    /// <response code="400">If the request data is invalid.</response>
+    /// <response code="401">If the user is not authenticated.</response>
+    /// <response code="404">If the task is not found.</response>
     [HttpPut("{id}")]
     public async Task<ActionResult<TaskDto>> Update(Guid id, [FromBody] TaskUpdateDto dto)
     {
@@ -52,6 +88,13 @@ public class TasksController : ControllerBase
         return Ok(task);
     }
 
+    /// <summary>
+    /// Deletes a task by its ID for the authenticated user.
+    /// </summary>
+    /// <param name="id">The unique identifier of the task to delete.</param>
+    /// <response code="204">If the task was successfully deleted.</response>
+    /// <response code="401">If the user is not authenticated.</response>
+    /// <response code="404">If the task is not found.</response>
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {

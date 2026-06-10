@@ -10,6 +10,9 @@ using TaskFlow.Domain.Entities;
 
 namespace TaskFlow.Application.Services;
 
+/// <summary>
+/// Provides authentication services including user registration, login, and JWT token generation.
+/// </summary>
 public class AuthService : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager;
@@ -26,6 +29,12 @@ public class AuthService : IAuthService
         _configuration = configuration;
     }
 
+    /// <summary>
+    /// Registers a new user, assigns the "User" role, and returns an authentication response with a JWT token.
+    /// </summary>
+    /// <param name="request">The registration details.</param>
+    /// <returns>An <see cref="AuthResponseDto"/> with the generated token and user data.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the email already exists or identity creation fails.</exception>
     public async Task<AuthResponseDto> RegisterAsync(RegisterRequest request)
     {
         var existingUser = await _userManager.FindByEmailAsync(request.Email);
@@ -50,6 +59,12 @@ public class AuthService : IAuthService
         return await GenerateAuthResponse(user);
     }
 
+    /// <summary>
+    /// Authenticates a user by email and password and returns an authentication response with a JWT token.
+    /// </summary>
+    /// <param name="request">The login credentials.</param>
+    /// <returns>An <see cref="AuthResponseDto"/> with the generated token and user data.</returns>
+    /// <exception cref="UnauthorizedAccessException">Thrown when the email or password is invalid.</exception>
     public async Task<AuthResponseDto> LoginAsync(LoginRequest request)
     {
         var user = await _userManager.FindByEmailAsync(request.Email);
@@ -63,6 +78,11 @@ public class AuthService : IAuthService
         return await GenerateAuthResponse(user);
     }
 
+    /// <summary>
+    /// Generates a JWT token and constructs an <see cref="AuthResponseDto"/> for the specified user.
+    /// </summary>
+    /// <param name="user">The authenticated user.</param>
+    /// <returns>An <see cref="AuthResponseDto"/> containing the token, email, username, and roles.</returns>
     private async Task<AuthResponseDto> GenerateAuthResponse(ApplicationUser user)
     {
         var roles = await _userManager.GetRolesAsync(user);

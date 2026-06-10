@@ -3,6 +3,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TaskFlow.Domain.Entities;
 
+/// <summary>
+/// Represents a task item owned by a user.
+/// Each task has a title, optional description, completion status, and timestamps.
+/// </summary>
 public class TaskItem
 {
     [Key]

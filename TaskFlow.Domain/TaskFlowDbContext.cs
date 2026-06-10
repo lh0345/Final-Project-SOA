@@ -4,6 +4,9 @@ using TaskFlow.Domain.Entities;
 
 namespace TaskFlow.Domain;
 
+/// <summary>
+/// Represents the database context for the TaskFlow application, managing entities and identity.
+/// </summary>
 public class TaskFlowDbContext : IdentityDbContext<ApplicationUser>
 {
     public TaskFlowDbContext(DbContextOptions<TaskFlowDbContext> options)

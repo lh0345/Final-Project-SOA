@@ -3,6 +3,9 @@ using TaskFlow.Application.DTOs;
 
 namespace TaskFlow.Application.Validators;
 
+/// <summary>
+/// Validates <see cref="TaskUpdateDto"/> ensuring title and description adhere to length constraints.
+/// </summary>
 public class TaskUpdateValidator : AbstractValidator<TaskUpdateDto>
 {
     public TaskUpdateValidator()

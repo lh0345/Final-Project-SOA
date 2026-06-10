@@ -3,6 +3,9 @@ using TaskFlow.Application.DTOs;
 
 namespace TaskFlow.Application.Validators;
 
+/// <summary>
+/// Validates <see cref="LoginRequest"/> ensuring email and password are provided and correctly formatted.
+/// </summary>
 public class LoginRequestValidator : AbstractValidator<LoginRequest>
 {
     public LoginRequestValidator()

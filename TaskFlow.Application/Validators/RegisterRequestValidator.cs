@@ -3,6 +3,9 @@ using TaskFlow.Application.DTOs;
 
 namespace TaskFlow.Application.Validators;
 
+/// <summary>
+/// Validates <see cref="RegisterRequest"/> ensuring email, username, and password meet required rules.
+/// </summary>
 public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
 {
     public RegisterRequestValidator()
