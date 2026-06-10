@@ -1,18 +1,20 @@
-using Microsoft.EntityFrameworkCore;
 using TaskFlow.Application.DTOs;
 using TaskFlow.Application.Interfaces;
-using TaskFlow.Domain;
 using TaskFlow.Domain.Entities;
 
 namespace TaskFlow.Application.Services;
 
+/// <summary>
+/// Implements task CRUD operations with user-scoped access control.
+/// Delegates all persistence to ITaskRepository, keeping business logic and data access decoupled.
+/// </summary>
 public class TaskService : ITaskService
 {
-    private readonly TaskFlowDbContext _context;
+    private readonly ITaskRepository _repository;
 
-    public TaskService(TaskFlowDbContext context)
+    public TaskService(ITaskRepository repository)
     {
-        _context = context;
+        _repository = repository;
     }
 
     public async Task<TaskDto> CreateTaskAsync(string userId, TaskCreateDto dto)
@@ -24,35 +26,25 @@ public class TaskService : ITaskService
             UserId = userId
         };
 
-        _context.Tasks.Add(task);
-        await _context.SaveChangesAsync();
-
-        return MapToDto(task);
+        var created = await _repository.AddAsync(task);
+        return MapToDto(created);
     }
 
     public async Task<IEnumerable<TaskDto>> GetUserTasksAsync(string userId)
     {
-        var tasks = await _context.Tasks
-            .Where(t => t.UserId == userId)
-            .OrderByDescending(t => t.CreatedAt)
-            .ToListAsync();
-
+        var tasks = await _repository.GetByUserIdAsync(userId);
         return tasks.Select(MapToDto);
     }
 
     public async Task<TaskDto?> GetTaskByIdAsync(string userId, Guid taskId)
     {
-        var task = await _context.Tasks
-            .FirstOrDefaultAsync(t => t.Id == taskId && t.UserId == userId);
-
+        var task = await _repository.GetByIdAndUserIdAsync(taskId, userId);
         return task is null ? null : MapToDto(task);
     }
 
     public async Task<TaskDto?> UpdateTaskAsync(string userId, Guid taskId, TaskUpdateDto dto)
     {
-        var task = await _context.Tasks
-            .FirstOrDefaultAsync(t => t.Id == taskId && t.UserId == userId);
-
+        var task = await _repository.GetByIdAndUserIdAsync(taskId, userId);
         if (task is null)
             return null;
 
@@ -61,46 +53,35 @@ public class TaskService : ITaskService
         task.IsCompleted = dto.IsCompleted;
         task.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        await _repository.UpdateAsync(task);
         return MapToDto(task);
     }
 
     public async Task<bool> DeleteTaskAsync(string userId, Guid taskId)
     {
-        var task = await _context.Tasks
-            .FirstOrDefaultAsync(t => t.Id == taskId && t.UserId == userId);
-
+        var task = await _repository.GetByIdAndUserIdAsync(taskId, userId);
         if (task is null)
             return false;
 
-        _context.Tasks.Remove(task);
-        await _context.SaveChangesAsync();
+        await _repository.DeleteAsync(task);
         return true;
     }
 
     public async Task<IEnumerable<TaskDto>> GetAllTasksAsync()
     {
-        var tasks = await _context.Tasks
-            .Include(t => t.User)
-            .OrderByDescending(t => t.CreatedAt)
-            .ToListAsync();
-
+        var tasks = await _repository.GetAllWithUserAsync();
         return tasks.Select(MapToDto);
     }
 
     public async Task<TaskDto?> GetAnyTaskByIdAsync(Guid taskId)
     {
-        var task = await _context.Tasks
-            .Include(t => t.User)
-            .FirstOrDefaultAsync(t => t.Id == taskId);
-
+        var task = await _repository.GetByIdWithUserAsync(taskId);
         return task is null ? null : MapToDto(task);
     }
 
     public async Task<TaskDto?> UpdateAnyTaskAsync(Guid taskId, TaskUpdateDto dto)
     {
-        var task = await _context.Tasks.FindAsync(taskId);
-
+        var task = await _repository.GetByIdAsync(taskId);
         if (task is null)
             return null;
 
@@ -109,19 +90,17 @@ public class TaskService : ITaskService
         task.IsCompleted = dto.IsCompleted;
         task.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        await _repository.UpdateAsync(task);
         return MapToDto(task);
     }
 
     public async Task<bool> DeleteAnyTaskAsync(Guid taskId)
     {
-        var task = await _context.Tasks.FindAsync(taskId);
-
+        var task = await _repository.GetByIdAsync(taskId);
         if (task is null)
             return false;
 
-        _context.Tasks.Remove(task);
-        await _context.SaveChangesAsync();
+        await _repository.DeleteAsync(task);
         return true;
     }
 

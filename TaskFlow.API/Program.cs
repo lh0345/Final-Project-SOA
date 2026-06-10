@@ -11,20 +11,25 @@ using TaskFlow.Application.Services;
 using TaskFlow.Application.Validators;
 using TaskFlow.Domain;
 using TaskFlow.Domain.Entities;
+using TaskFlow.Infrastructure.Data;
 using TaskFlow.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure controllers with FluentValidation auto-validation
 builder.Services.AddControllers();
 builder.Services.AddFluentValidationAutoValidation();
 
+// Register Entity Framework Core with SQL Server
 builder.Services.AddDbContext<TaskFlowDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Configure ASP.NET Core Identity with EF Core stores
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<TaskFlowDbContext>()
     .AddDefaultTokenProviders();
 
+// Configure JWT Bearer authentication
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -47,11 +52,15 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+// Register application services and the repository layer for dependency injection
+builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 
+// Register FluentValidation validators from the Application assembly
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
 
+// Configure Swagger/OpenAPI with JWT bearer token support
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -80,6 +89,7 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
+// Apply EF Core migrations and seed roles + default admin on startup
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -120,12 +130,14 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+// Enable Swagger UI only in development
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+// Global exception handling middleware
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();

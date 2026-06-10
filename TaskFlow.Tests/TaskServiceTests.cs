@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using TaskFlow.Application.DTOs;
+using TaskFlow.Application.Interfaces;
 using TaskFlow.Application.Services;
 using TaskFlow.Domain;
 using TaskFlow.Domain.Entities;
+using TaskFlow.Infrastructure.Data;
 using FluentAssertions;
 
 namespace TaskFlow.Tests;
@@ -10,6 +12,7 @@ namespace TaskFlow.Tests;
 public class TaskServiceTests
 {
     private readonly TaskFlowDbContext _context;
+    private readonly ITaskRepository _repository;
     private readonly TaskService _taskService;
 
     public TaskServiceTests()
@@ -19,7 +22,8 @@ public class TaskServiceTests
             .Options;
 
         _context = new TaskFlowDbContext(options);
-        _taskService = new TaskService(_context);
+        _repository = new TaskRepository(_context);
+        _taskService = new TaskService(_repository);
     }
 
     [Fact]
